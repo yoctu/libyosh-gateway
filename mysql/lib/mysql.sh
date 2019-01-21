@@ -19,7 +19,6 @@ Mysql::connect(){
     Type::variable::set user password host db || { echo "No valid credentials"; return 1;}
 
     #init connection and channels
-    #we do it in XML cause otherwise we can't detect the end of data and so would need a read timeout O_o
     coproc MYSQLCONNECTION { stdbuf -oL mysql -u $user -p$password -h $host -D $db --force --unbuffered 2>&1; } #2> /dev/null
 
     if Mysql::check MYSQLCONNECTION; then
