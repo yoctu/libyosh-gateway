@@ -35,7 +35,7 @@ Mysql::query(){
     [private] query 
     [private] line 
     [private:map] array="$1"
-    [private] counter=0
+    [private:int] counter="0"
 
     #delimit query; otherwise we block forever/timeout
     query="${2%;}\G;\\! echo 'END'"
