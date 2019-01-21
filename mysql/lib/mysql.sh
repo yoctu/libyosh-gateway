@@ -5,7 +5,7 @@
 Mysql::check(){
     local handle
 
-    # add a check, ps?    
+    ps -p "$MYSQLCONNECTION_PID" || return 1
 
     return 0
 }
