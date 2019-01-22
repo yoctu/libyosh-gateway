@@ -7,8 +7,9 @@ The Database credentials should be defined like this:
 ```
 MYSQL['connection':'user']="USER"
 MYSQL['connection':'password']="PASSWORD"
-MYSQL['connection':'host']="HOST"
+MYSQL['connection':'host']="HOST" # default: localhost
 MYSQL['connection':'database']="DATABASE"
+MYSQL['connection':'port']="PORT" # default: 3306
 ```
 
 ## Mysql::query
