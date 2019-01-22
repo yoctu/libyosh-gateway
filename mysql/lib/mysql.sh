@@ -1,11 +1,12 @@
 ############### BASIC MYSQL SESSION IMPLEMENTATION FOR BASH (by Norman Geist 2015) #############
 # requires coproc, stdbuf, mysql
 #args: handle query
+# Modified by Dzogovic Vehbo (dzove855) 2019-01-21
+
+[public:assoc] MYSQL
 
 Mysql::check(){
-    local handle
-
-    ps -p "$MYSQLCONNECTION_PID" || return 1
+    ps -p "$MYSQLCONNECTION_PID" &>/dev/null || return 1
 
     return 0
 }
@@ -21,7 +22,7 @@ Mysql::connect(){
     #init connection and channels
     coproc MYSQLCONNECTION { stdbuf -oL mysql -u $user -p$password -h $host -D $db --force --unbuffered 2>&1; } #2> /dev/null
 
-    if Mysql::check MYSQLCONNECTION; then
+    if Mysql::check; then
         return 0
     else
         echo "ERROR: Connection failed to $user@$host->DB:$db!"
@@ -37,6 +38,8 @@ Mysql::query(){
     [private:map] array="$1"
     [private:int] counter="0"
 
+    Mysql::check
+
     #delimit query; otherwise we block forever/timeout
     query="${2%;}\G;\\! echo 'END'"
 
@@ -45,7 +48,7 @@ Mysql::query(){
 
     #get output
     array[status]=0
-    while read -t $MYSQL_READ_TIMEOUT -ru ${MYSQLCONNECTION[0]} line; do 
+    while read -t ${MYSQL_READ_TIMEOUT:-30} -ru ${MYSQLCONNECTION[0]} line; do 
         #WAS ERROR?
         if [[ "$line" == *"ERROR"* ]]; then
             echo "$line"
@@ -61,7 +64,7 @@ Mysql::query(){
         else
             result="${line#*:}"
             trim result
-            array['result':$counter:${line%%:*}]="$result"
+            array['result':$counter:${line%%:*}]="${result}"
         fi
 
     done
@@ -74,12 +77,67 @@ Mysql::query(){
 
 #args: handle
 Mysql::close(){
-
-    if ! Mysql::check MYSQLCONNECTION; then
+    if ! Mysql::check; then
         echo "ERROR: Connection not open!"
         return 1
     fi
 
     echo "exit;" >&${MYSQLCONNECTION[1]}
 }
+
+Mysql::get(){
+    [private] array="$1"
+    [private] query="${*:2}"
+
+    # Check if query is select
+    [[ "$query" =~ ^(select|SELECT).* ]] || return 1
+
+    Mysql::query "$array" "$query"
+}
+
+Mysql::post(){
+    [private] array="$1"
+    [private] query="${*:2}"
+    [private:assoc] tmpArray
+    read insert into table tmp <<<"$query"
+
+    # check if query is really an insert
+    [[ "$query" =~ ^(insert|INSERT).* ]] || return 1
+
+    Mysql::query tmpArray "$query"
+    Mysql::query "$array" "select * from $table where id=LAST_INSERT_ID()"
+}
+
+Mysql::put(){
+    [private] array="$1"
+    [private] query="${*:2}"
+    [private:assoc] tmpArray
+    [private] whereClause
+    read update table tmp <<<"$query"    
+
+    # check if query is update
+    [[ "$query" =~ ^(update|UPDATE).* ]] || return 1
+
+    [[ "$query" =~ .*(where|WHERE)(.*) ]] && whereClause="${BASH_REMATCH[2]}"
+
+    Mysql::query tmpArray "$query"
+    Mysql::query "$array" "select * from $table where $whereClause"
+}
+
+Mysql::delete(){
+    [private] array="$1"
+    [private] query="${*:2}"
+    [private:assoc] tmpArray
+    [private] whereClause
+    read delete from table tmp <<<"$query"
+
+    [[ "$query" =~ ^(delete|DELETE).* ]] || return 1
+
+    [[ "$query" =~ .*(where|WHERE)(.*) ]] && whereClause="${BASH_REMATCH[2]}"
+
+    Mysql::query "$array" "select id from $table where $whereClause"
+    Mysql::query tmpArray "$query"
+
+}
+
 
