@@ -38,7 +38,7 @@ Mysql::query(){
     [private:map] array="$1"
     [private:int] counter="0"
 
-    Mysql::check
+    Mysql::check || Mysql::connect || return 1
 
     #delimit query; otherwise we block forever/timeout
     query="${2%;}\G;\\! echo 'END'"
@@ -140,4 +140,32 @@ Mysql::delete(){
 
 }
 
+Mysql::build::query::post(){
+    [private:map] array="$1"
 
+    [[ -z "${array['table']}" ]] && return 1
+
+    for key in "${!array[@]}"; do
+        [[ "$key" == "table" ]] && continue
+        column+="\`$key\`,"
+        values+="\"${array[$key]}\","
+    done
+
+    printf "%s" "insert into ${array['table']} (${column%,}) values (${values%,})"
+}
+
+Mysql::build::query::put(){
+    [private:map] array="$1"
+
+    [[ -z "${array['table']}" ]] && return 1
+    [[ -z "${array['whereclause']}" ]] && return 1
+
+    for key in "${!array[@]}"; do
+        [[ "$key" == "table" ]] && continue
+        [[ "$key" == "whereclause" ]] && continue
+
+        update+="\`$key\`=\"${array[$key]}\","
+    done
+    
+    printf "%s" "update ${array['table']} set ${update%,} where ${array['whereclause']}"
+}
