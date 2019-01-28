@@ -141,32 +141,58 @@ Mysql::delete(){
 
 }
 
+Mysql::build::query::get(){
+    [private:map] array="$1"
+    [private] where
+
+    [[ -z "${array['table']}" ]] && return 1
+
+    if ! [[ -z "${array['search']}" ]]; then
+        where="where ${array['search']}"
+    fi
+
+    printf '%s' "select ${array['filter']:-*} from ${array['table']} $where"
+}
+
+Mysql::build::query::delete(){
+    [private:map] array="$1"
+    
+    [[ -z "${array['table']}" ]] && return 1
+    [[ -z "${array['search']}" ]] && return 1
+
+    printf '%s' "delete from ${array['table']} where ${array['search']}"
+}
+
 Mysql::build::query::post(){
     [private:map] array="$1"
+    [private] column
+    [private] values
 
     [[ -z "${array['table']}" ]] && return 1
 
     for key in "${!array[@]}"; do
         [[ "$key" == "table" ]] && continue
         column+="\`$key\`,"
-        values+="\"${array[$key]}\","
+        values+="\"$( printf '%q' "${array[$key]}")\","
     done
 
-    printf "%s" "insert into ${array['table']} (${column%,}) values (${values%,})"
+    printf '%s' "insert into ${array['table']} (${column%,}) values (${values%,})"
 }
 
 Mysql::build::query::put(){
     [private:map] array="$1"
+    [private] column
+    [private] values
 
     [[ -z "${array['table']}" ]] && return 1
-    [[ -z "${array['whereclause']}" ]] && return 1
+    [[ -z "${array['search']}" ]] && return 1
 
     for key in "${!array[@]}"; do
         [[ "$key" == "table" ]] && continue
-        [[ "$key" == "whereclause" ]] && continue
+        [[ "$key" == "search" ]] && continue
 
-        update+="\`$key\`=\"${array[$key]}\","
+        update+="\`$key\`=\"$( printf '%q' "${array[$key]}")\","
     done
     
-    printf "%s" "update ${array['table']} set ${update%,} where ${array['whereclause']}"
+    printf '%s' "update ${array['table']} set ${update%,} where ${array['search']}"
 }

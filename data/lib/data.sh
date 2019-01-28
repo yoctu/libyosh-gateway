@@ -39,4 +39,6 @@ alias Data::post="Data::runner post"
 alias Data::delete="Data::runner delete"
 alias Data::build::query::post="Data::build::query post"
 alias Data::build::query::put="Data::build::query put"
+alias Data::build::query::delete="Data::build::query delete"
+alias Data::build::query::get="Data::build::query get"
 
