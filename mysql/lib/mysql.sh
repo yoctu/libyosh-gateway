@@ -21,7 +21,7 @@ Mysql::connect(){
     Type::variable::set user password host db || { echo "No valid credentials"; return 1;}
 
     #init connection and channels
-    coproc MYSQLCONNECTION { stdbuf -oL mysql -u $user -p$password -h $host -P $port -D $db --force --unbuffered 2>&1; } #2> /dev/null
+    coproc MYSQLCONNECTION { stdbuf -oL mysql -u $user -p$password -h $host -P $port -D $db --force --unbuffered ; } #2> /dev/null
 
     if Mysql::check; then
         return 0
