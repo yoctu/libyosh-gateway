@@ -148,9 +148,9 @@ Mysql::build::query::get(){
 
     [[ -z "${array['table']}" ]] && return 1
 
-    if ! [[ -z "${array['search']}" ]]; then
+    if ! [[ -z "${array['search':'column']}" ]]; then
         where="where ${array['search':'column']}"
-        where+=" like '${array['search':'value']:-%}'"
+        where+=" like '${array['search':'key']:-%}'"
     fi
 
     if ! [[ -z "${array['limit']}" ]]; then
