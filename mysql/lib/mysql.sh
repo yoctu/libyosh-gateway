@@ -144,23 +144,29 @@ Mysql::delete(){
 Mysql::build::query::get(){
     [private:map] array="$1"
     [private] where
+    [private] limit
 
     [[ -z "${array['table']}" ]] && return 1
 
     if ! [[ -z "${array['search']}" ]]; then
-        where="where ${array['search']}"
+        where="where ${array['search':'column']}"
+        where+=" like '${array['search':'value']:-%}'"
     fi
 
-    printf '%s' "select ${array['filter']:-*} from ${array['table']} $where"
+    if ! [[ -z "${array['limit']}" ]]; then
+        limit="limit ${array['limit']}"
+    fi
+
+    printf '%s' "select ${array['filter']:-*} from ${array['table']} $where $limit"
 }
 
 Mysql::build::query::delete(){
     [private:map] array="$1"
     
     [[ -z "${array['table']}" ]] && return 1
-    [[ -z "${array['search']}" ]] && return 1
+    [[ -z "${array['search':'column']}" ]] && return 1
 
-    printf '%s' "delete from ${array['table']} where ${array['search']}"
+    printf '%s' "delete from ${array['table']} where ${array['search':'column']} like '${array['search':'key']:-%}'"
 }
 
 Mysql::build::query::post(){
@@ -185,7 +191,7 @@ Mysql::build::query::put(){
     [private] values
 
     [[ -z "${array['table']}" ]] && return 1
-    [[ -z "${array['search']}" ]] && return 1
+    [[ -z "${array['search':'column']}" ]] && return 1
 
     for key in "${!array[@]}"; do
         [[ "$key" == "table" ]] && continue
@@ -194,5 +200,5 @@ Mysql::build::query::put(){
         update+="\`$key\`=\"$( printf '%q' "${array[$key]}")\","
     done
     
-    printf '%s' "update ${array['table']} set ${update%,} where ${array['search']}"
+    printf '%s' "update ${array['table']} set ${update%,} where ${array['search':'column']} like '${array['search':'key']:-%}'"
 }
