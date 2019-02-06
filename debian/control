@@ -8,5 +8,5 @@ Package: libyosh-gateway
 Architecture: all
 Maintainer: Dzogovic Vehbo <dzove855@yoctu.com>
 Priority: optional
-Depends: jq, ldap-utils, openssl, xmlsec1, xmlstarlet, gridsite-clients, uuid-runtime
+Depends: jq, yosh, mysql-client
 Description: libyosh-gateway (yoctu shell) - Micro Web Framework lib
