@@ -195,7 +195,7 @@ Mysql::build::query::put(){
 
     for key in "${!array[@]}"; do
         [[ "$key" == "table" ]] && continue
-        [[ "$key" == "search" ]] && continue
+        [[ "$key" =~ search.* ]] && continue
 
         update+="\`$key\`=\"$( printf '%q' "${array[$key]}")\","
     done
