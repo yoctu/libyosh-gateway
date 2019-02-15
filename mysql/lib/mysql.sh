@@ -12,11 +12,11 @@ Mysql::check(){
 }
 
 Mysql::connect(){
-    [private] user="${MYSQL["connection":"user"]}" 
-    [private] password="${MYSQL["connection":"password"]}"
-    [private] host="${MYSQL["connection":"host"]:-localhost}" 
-    [private] db="${MYSQL["connection":"database"]}"
-    [private] port="${MYSQL["connecyion":"port"]:-3306}"
+    [private] user="${MYSQL['connection':'user']}" 
+    [private] password="${MYSQL['connection':'password']}"
+    [private] host="${MYSQL['connection':'host']:-localhost}" 
+    [private] db="${MYSQL['connection':'database']}"
+    [private] port="${MYSQL['connection':'port']:-3306}"
 
     Type::variable::set user password host db || { echo "No valid credentials"; return 1;}
 
