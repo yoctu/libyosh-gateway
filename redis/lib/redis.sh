@@ -26,26 +26,6 @@ Redis::connect() {
     fi
 }
 
-Redis::readTest() {
-    [private] query="$2"
-    [private] line
-    [private:assoc] array="$1"
-    
-    Redis::check || Redis::connect || return 1
-    
-    echo "$query" >&${REDISCONNECTION[1]}
-
-
-    echo "okokokkookok2 $query"
-    
-    my_array=()
-    while read -ru ${REDISCONNECTION[0]} line;
-    do
-	my_array+=( "$line" )
-	echo "$line"
-    done
-}
-
 Redis::query() {
     [private] query="$2"
     [private] key="${*:2}"
@@ -151,7 +131,7 @@ Redis::delete() {
 
     [[ "$query" =~ ^(DEL|del).* ]] || return 1
 
-    echo "Redis::delete is ok"
+
     Redis::query tmpArray "$query"
     Redis::query "$array" "get $key"
 }
@@ -175,9 +155,9 @@ Redis::keys() {
 
     [[ "$query" =~ ^(keys|KEYS).* ]] || return 1
 
-    Redis::readTest tmpArray "$query"
-    #Redis::query tmpArray "$query"
-    #Redis::query "$array" "get"
+    #Redis::readTest tmpArray "$query"
+    Redis::query tmpArray "$query"
+    Redis::query "$array" "get"
 }
 
 Redis::list::rpush() {
